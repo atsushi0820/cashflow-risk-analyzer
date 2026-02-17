@@ -209,8 +209,8 @@ pip install -r requirements.txt
 
 ### 連絡先
 
-- GitHub: [@あなたのユーザー名](https://github.com/あなたのユーザー名)
-- LinkedIn: [プロフィールURL]（オプション）
+- GitHub: atsushi0820
+- LinkedIn:atsushi0820
 
 ---
 
