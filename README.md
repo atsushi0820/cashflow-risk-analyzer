@@ -252,7 +252,7 @@ pip install -r requirements.txt
 
 ## 🙏 謝辞
 
-このツールは、30年間の金融実務で見てきた「Small and medium-sized enterprise managers who do not voluntarily prepare cash flow statements」が多い現実を踏まえ、
+このツールは、30年間の金融実務で見てきた「自主的にキャッシュ・フロー計算書を作成しない中小企業経営者」が多い現実を踏まえ、
 **5分で入力できる最小限の項目**で実用的なリスク分析を可能にすることを目指して開発しました。
 
 モンテカルロ法の実装にあたっては、NumPyの公式ドキュメントと統計学の標準的な手法を参考にしています。
