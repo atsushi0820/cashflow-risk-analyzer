@@ -19,15 +19,25 @@
 - 🎲 **モンテカルロ法**: 10,000通りの未来をシミュレーションして統計的に分析
 - 🔍 **What-if分析**: 「固定費を20%削減したら？」などのシナリオ比較が可能
 
+### Phase 2: ストレステスト（2026年2月追加）
+
+- 🔥 **売上急落シナリオ**: コロナショック・景気後退を想定した突発的な売上減少に対する耐性評価
+- 📉 **4つの事前定義シナリオ**: 軽度（20%減）、中度（30%減）、重度（50%減）、一時的ショック
+- 🎯 **限界値の可視化**: 「売上が何%減少すると資金ショートするか」が一目でわかる
+- 🚨 **リスク判定**: 各シナリオを🟢安全・🟡注意・🟠警戒・🔴危険の4段階で自動判定
+
 ---
 
 ## 🖼️ スクリーンショット
 
-### メインダッシュボード
+### メインダッシュボード（Phase 1）
 ![資金繰りダッシュボード](images/dashboard_sample.png)
 
-### 感度分析（What-if シミュレーション）
+### 感度分析（Phase 1: What-if シミュレーション）
 ![感度分析](images/sensitivity_sample.png)
+
+### ストレステスト結果（Phase 2: 売上急落シナリオ）
+![ストレステスト結果](images/stress_test_sample.png)
 
 ---
 
@@ -54,6 +64,15 @@ jupyter notebook
 
 ### 使い方
 
+#### Phase 1 + Phase 2（推奨）
+
+1. `cashflow_simulator_phase1_phase2.ipynb` を開く
+2. **セル3** のパラメータを自社の数字に変更
+3. メニューから `Kernel` → `Restart & Run All` を実行
+4. Phase 1のグラフ（2枚）とPhase 2のストレステスト結果（1枚）が自動生成されます
+
+#### Phase 1のみ
+
 1. `phase1_資金繰りシミュレーター_日本語版.ipynb` を開く
 2. **セル3** のパラメータを自社の数字に変更
 3. メニューから `Kernel` → `Restart & Run All` を実行
@@ -78,6 +97,8 @@ params = CashFlowParameters(
 
 実行すると、以下のファイルが自動生成されます：
 
+### Phase 1
+
 - `資金繰りダッシュボード.png` - 4枚組の分析グラフ
   - 現金残高の予測範囲
   - 月次資金ショート確率
@@ -88,6 +109,13 @@ params = CashFlowParameters(
   - 固定費削減の効果
   - 売上減少時のリスク
   - 各種改善策の比較
+
+### Phase 2（ストレステスト）
+
+- `ストレステスト結果.png` - 売上急落シナリオ比較
+  - 4シナリオの資金ショート確率（横棒グラフ）
+  - 12ヶ月後の予測残高（横棒グラフ）
+  - リスク判定（🟢🟡🟠🔴）
 
 ---
 
@@ -120,13 +148,15 @@ params = CashFlowParameters(
 
 ```
 cashflow-risk-analyzer/
-├── phase1_資金繰りシミュレーター_日本語版.ipynb  # メインノートブック
+├── cashflow_simulator_phase1_phase2.ipynb         # Phase 1 + 2 統合版（推奨）
+├── phase1_資金繰りシミュレーター_日本語版.ipynb  # Phase 1のみ
 ├── README.md                                      # このファイル
 ├── requirements.txt                               # 必要パッケージ
 ├── LICENSE                                        # MITライセンス
 ├── images/                                        # サンプル画像
-│   ├── dashboard_sample.png
-│   └── sensitivity_sample.png
+│   ├── dashboard_sample.png                      # Phase 1 ダッシュボード
+│   ├── sensitivity_sample.png                    # Phase 1 感度分析
+│   └── stress_test_sample.png                    # Phase 2 ストレステスト
 └── docs/                                          # ドキュメント
     └── 使い方ガイド.pptx
 ```
@@ -145,11 +175,17 @@ cashflow-risk-analyzer/
 
 ---
 
-## 🛠️ 今後の開発予定（Phase 2以降）
+## 🛠️ 今後の開発予定
 
-### Phase 2: ストレステスト
+### ✅ Phase 2: ストレステスト（完了 - 2026年2月）
+- ✅ 売上急落シミュレーション（4シナリオ）
+- ✅ リスク判定機能（🟢🟡🟠🔴）
+- ✅ 完全日本語対応ダッシュボード
+
+### Phase 3: 追加ストレステスト（予定）
 - 取引先倒産シミュレーション
 - 金利上昇の影響分析
+- 仕入価格高騰の影響
 - 売上急落時の資金繰り
 
 ### Phase 3: 改善策提案エンジン
@@ -209,8 +245,8 @@ pip install -r requirements.txt
 
 ### 連絡先
 
-- GitHub: atsushi0820
-- LinkedIn:atsushi0820
+- GitHub: [@あなたのユーザー名](https://github.com/あなたのユーザー名)
+- LinkedIn: [プロフィールURL]（オプション）
 
 ---
 
@@ -230,5 +266,5 @@ pip install -r requirements.txt
 ---
 
 **作成日:** 2026年2月  
-**バージョン:** Phase 1.1（完全日本語版）  
-**最終更新:** 2026年2月17日
+**バージョン:** Phase 2.0（ストレステスト追加）  
+**最終更新:** 2026年2月18日
