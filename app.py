@@ -24,15 +24,13 @@ st.set_page_config(
     page_icon="📊", layout="wide",
     initial_sidebar_state="expanded")
 
-# 日本語フォント設定（Python 3.13対応）
-import urllib.request, os, matplotlib.font_manager as fm
+# 日本語フォント設定（リポジトリ内のフォントファイルを使用）
+import matplotlib.font_manager as fm, os as _os
 
-_FONT_URL = "https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Regular.ttf"
-_FONT_PATH = os.path.join(os.path.dirname(__file__), "NotoSansJP-Regular.ttf")
-if not os.path.exists(_FONT_PATH):
-    urllib.request.urlretrieve(_FONT_URL, _FONT_PATH)
-fm.fontManager.addfont(_FONT_PATH)
-plt.rcParams["font.family"] = "Noto Sans JP"
+_FONT_PATH = _os.path.join(_os.path.dirname(__file__), "ipag.ttf")
+if _os.path.exists(_FONT_PATH):
+    fm.fontManager.addfont(_FONT_PATH)
+    plt.rcParams["font.family"] = "IPAGothic"
 plt.rcParams["axes.unicode_minus"] = False
 
 # ============================================================
