@@ -258,14 +258,6 @@ cashflow-risk-analyzer/
 
 ---
 
-## 📖 ドキュメント
-
-- [使い方ガイド（PowerPoint）](docs/使い方ガイド.pptx)
-- [技術解説（準備中）](#)
-- [よくある質問（準備中）](#)
-
----
-
 ## 🤝 貢献
 
 Issue報告やPull Requestを歓迎します。
