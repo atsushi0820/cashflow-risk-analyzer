@@ -24,13 +24,22 @@ st.set_page_config(
     page_icon="📊", layout="wide",
     initial_sidebar_state="expanded")
 
-# 日本語フォント設定（リポジトリ内のフォントファイルを使用）
+# 日本語フォント設定（エラーが起きてもアプリを止めない）
 import matplotlib.font_manager as fm, os as _os
 
-_FONT_PATH = _os.path.join(_os.path.dirname(__file__), "ipag.ttf")
-if _os.path.exists(_FONT_PATH):
-    fm.fontManager.addfont(_FONT_PATH)
-    plt.rcParams["font.family"] = "IPAGothic"
+try:
+    _FONT_PATH = _os.path.join(_os.path.dirname(__file__), "ipag.ttf")
+    if _os.path.exists(_FONT_PATH):
+        fm.fontManager.addfont(_FONT_PATH)
+        plt.rcParams["font.family"] = "IPAGothic"
+    else:
+        # システムフォントから日本語対応フォントを探す
+        _JP_NAMES = {"IPAGothic","IPAPGothic","Noto Sans CJK JP","Noto Sans JP","MS Gothic","Yu Gothic","Meiryo"}
+        _found = [f.name for f in fm.fontManager.ttflist if f.name in _JP_NAMES]
+        if _found:
+            plt.rcParams["font.family"] = _found[0]
+except Exception:
+    pass  # フォント設定失敗してもアプリは動かす
 plt.rcParams["axes.unicode_minus"] = False
 
 # ============================================================
