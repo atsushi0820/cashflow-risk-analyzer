@@ -607,6 +607,21 @@ def main():
         - 💡 Phase 3: 改善策提案エンジン（業種別ARモデル・資金調達オプション）
         - 📥 Phase 4: Excelダウンロード（5シート構成）
         """)
+
+        # ── 利用マニュアルダウンロード ──
+        st.markdown("---")
+        st.markdown("#### 📖 利用マニュアル")
+        import os as _os
+        _manual_path = _os.path.join(_os.path.dirname(__file__), "資金繰りリスク可視化ツール_利用マニュアル.pdf")
+        if _os.path.exists(_manual_path):
+            with open(_manual_path, "rb") as _f:
+                st.download_button(
+                    label="📄 利用マニュアルをダウンロード（PDF）",
+                    data=_f.read(),
+                    file_name="資金繰りリスク可視化ツール_利用マニュアル.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
         return
 
     # ── パラメータ構築 ──
