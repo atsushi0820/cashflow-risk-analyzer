@@ -1,6 +1,5 @@
 numpy
 matplotlib
-japanize-matplotlib
 openpyxl
 streamlit
 pandas

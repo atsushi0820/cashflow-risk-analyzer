@@ -24,7 +24,15 @@ st.set_page_config(
     page_icon="📊", layout="wide",
     initial_sidebar_state="expanded")
 
-import japanize_matplotlib  # noqa: F401  日本語フォント自動設定
+# 日本語フォント設定（Python 3.13対応）
+import urllib.request, os, matplotlib.font_manager as fm
+
+_FONT_URL = "https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Regular.ttf"
+_FONT_PATH = os.path.join(os.path.dirname(__file__), "NotoSansJP-Regular.ttf")
+if not os.path.exists(_FONT_PATH):
+    urllib.request.urlretrieve(_FONT_URL, _FONT_PATH)
+fm.fontManager.addfont(_FONT_PATH)
+plt.rcParams["font.family"] = "Noto Sans JP"
 plt.rcParams["axes.unicode_minus"] = False
 
 # ============================================================
