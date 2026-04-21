@@ -102,11 +102,15 @@ st.markdown("""
 # =============================================================================
 # Word出力関数
 # =============================================================================
-def generate_word_report(params, funding_needs, shock_results, monthly_cf_surplus):
+def generate_word_report(params, funding_needs, shock_results, cf_info):
     """Word形式の銀行交渉用レポートを生成"""
     
     if not DOCX_AVAILABLE:
         return None
+    
+    monthly_cf_surplus = cf_info['net_cf_surplus']
+    gross_cf = cf_info['gross_cf']
+    existing_payment = cf_info['existing_payment']
     
     doc = Document()
     
@@ -176,17 +180,33 @@ def generate_word_report(params, funding_needs, shock_results, monthly_cf_surplu
     
     gross_profit = params['monthly_sales'] * (1 - params['cost_rate']/100)
     
-    table = doc.add_table(rows=6, cols=2)
-    table.style = 'Light Grid Accent 1'
-    
-    rows_data = [
-        ('項目', '金額'),
-        ('月次粗利平均', f'{gross_profit:,.0f}万円'),
-        ('固定費', f'{params["monthly_fixed_cost"]:,.0f}万円'),
-        ('CF余剰', f'{monthly_cf_surplus:,.0f}万円'),
-        ('月次返済額', f'{recommended_repayment:,.1f}万円'),
-        ('返済後のCF余裕', f'{monthly_cf_surplus - recommended_repayment:,.1f}万円')
-    ]
+    # 既存借入がある場合は行数を増やす
+    if existing_payment > 0:
+        table = doc.add_table(rows=8, cols=2)
+        table.style = 'Light Grid Accent 1'
+        
+        rows_data = [
+            ('項目', '金額'),
+            ('月次粗利平均', f'{gross_profit:,.0f}万円'),
+            ('固定費', f'{params["monthly_fixed_cost"]:,.0f}万円'),
+            ('粗CF', f'{gross_cf:,.0f}万円'),
+            ('既存借入返済', f'{existing_payment:,.0f}万円'),
+            ('純CF余剰', f'{monthly_cf_surplus:,.0f}万円'),
+            ('新規借入返済額', f'{recommended_repayment:,.1f}万円'),
+            ('返済後のCF余裕', f'{monthly_cf_surplus - recommended_repayment:,.1f}万円')
+        ]
+    else:
+        table = doc.add_table(rows=6, cols=2)
+        table.style = 'Light Grid Accent 1'
+        
+        rows_data = [
+            ('項目', '金額'),
+            ('月次粗利平均', f'{gross_profit:,.0f}万円'),
+            ('固定費', f'{params["monthly_fixed_cost"]:,.0f}万円'),
+            ('CF余剰', f'{monthly_cf_surplus:,.0f}万円'),
+            ('月次返済額', f'{recommended_repayment:,.1f}万円'),
+            ('返済後のCF余裕', f'{monthly_cf_surplus - recommended_repayment:,.1f}万円')
+        ]
     
     for i, (item, value) in enumerate(rows_data):
         cells = table.rows[i].cells
@@ -217,11 +237,13 @@ def generate_word_report(params, funding_needs, shock_results, monthly_cf_surplu
 # =============================================================================
 # Excel出力関数
 # =============================================================================
-def generate_excel_report(params, funding_needs, shock_results, monthly_cf_surplus):
+def generate_excel_report(params, funding_needs, shock_results, cf_info):
     """Excel形式の詳細レポートを生成"""
     
     if not EXCEL_AVAILABLE:
         return None
+    
+    monthly_cf_surplus = cf_info['net_cf_surplus']
     
     wb = openpyxl.Workbook()
     
@@ -404,6 +426,40 @@ with col1:
 with col2:
     inventory_days = st.number_input("在庫回転期間（日）", min_value=0, max_value=180, value=30, step=5)
 
+# 既存借入情報
+st.markdown('<div class="section-header">🏦 ステップ3: 既存借入情報（任意）</div>', 
+            unsafe_allow_html=True)
+
+st.info("既存の借入がある場合のみ入力してください。ない場合は0のままで結構です。")
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    existing_loan_balance = st.number_input(
+        "既存借入残高（万円）",
+        min_value=0,
+        value=0,
+        step=100,
+        help="現在の借入残高"
+    )
+with col2:
+    existing_loan_rate = st.number_input(
+        "既存借入金利（%）",
+        min_value=0.0,
+        max_value=20.0,
+        value=2.0,
+        step=0.1,
+        help="年利"
+    )
+with col3:
+    existing_loan_years = st.number_input(
+        "残存返済期間（年）",
+        min_value=0.0,
+        max_value=30.0,
+        value=5.0,
+        step=0.5,
+        help="残りの返済期間"
+    )
+
 # 実行ボタン（入力完了後）
 st.markdown("---")
 run_simulation = st.button(
@@ -424,7 +480,9 @@ if run_simulation:
         'ar_days': ar_days,
         'ap_days': ap_days,
         'inventory_days': inventory_days,
-        'existing_debt_repayment': 0
+        'existing_loan_balance': existing_loan_balance,
+        'existing_loan_rate': existing_loan_rate,
+        'existing_loan_years': existing_loan_years
     }
     
     # Phase 3: 長期運転資金
@@ -434,9 +492,42 @@ if run_simulation:
     with st.spinner('必要資金額を算出中...'):
         calculator = FundingCalculator(n_simulations=10000)
         funding_needs = calculator.calculate_funding_needs(params)
-        monthly_cf_surplus = calculator.calculate_monthly_cf_surplus(params)
+        cf_info = calculator.calculate_monthly_cf_surplus(params)
+        
+        monthly_cf_surplus = cf_info['net_cf_surplus']
+        gross_cf = cf_info['gross_cf']
+        existing_payment = cf_info['existing_payment']
     
     st.subheader("📊 目標水準別の必要資金額")
+    
+    # 既存借入がある場合の情報表示
+    if existing_loan_balance > 0:
+        st.info(f"""
+        **既存借入の返済状況**
+        
+        - 借入残高: {existing_loan_balance:,.0f}万円
+        - 金利: {existing_loan_rate}%
+        - 残存期間: {existing_loan_years}年
+        - 月次返済額: {existing_payment:,.1f}万円
+        
+        ---
+        
+        **キャッシュフロー分析**
+        
+        - 月次粗CF（粗利-固定費）: {gross_cf:,.1f}万円
+        - 既存借入返済: -{existing_payment:,.1f}万円
+        - **純CF余剰: {monthly_cf_surplus:,.1f}万円**
+        """)
+    else:
+        st.info(f"""
+        **キャッシュフロー分析**
+        
+        - 月次粗CF（粗利-固定費）: {gross_cf:,.1f}万円
+        - 既存借入返済: なし
+        - **純CF余剰: {monthly_cf_surplus:,.1f}万円**
+        """)
+    
+    st.markdown("---")
     
     for level in ['安全', '標準', '最低限']:
         result = funding_needs[level]
@@ -501,7 +592,7 @@ if run_simulation:
     # Word出力
     with col1:
         if DOCX_AVAILABLE:
-            word_buffer = generate_word_report(params, funding_needs, shock_results, monthly_cf_surplus)
+            word_buffer = generate_word_report(params, funding_needs, shock_results, cf_info)
             if word_buffer:
                 st.download_button(
                     label="📝 Wordレポート",
@@ -516,7 +607,7 @@ if run_simulation:
     # Excel出力
     with col2:
         if EXCEL_AVAILABLE:
-            excel_buffer = generate_excel_report(params, funding_needs, shock_results, monthly_cf_surplus)
+            excel_buffer = generate_excel_report(params, funding_needs, shock_results, cf_info)
             if excel_buffer:
                 st.download_button(
                     label="📊 Excelレポート",

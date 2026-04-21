@@ -23,6 +23,75 @@ class FundingCalculator:
         """
         self.n_simulations = n_simulations
     
+    @staticmethod
+    def calculate_loan_payment(principal: float, annual_rate: float, 
+                              years: float) -> float:
+        """
+        元利均等返済の月次返済額を計算
+        
+        Args:
+            principal: 借入残高（万円）
+            annual_rate: 年利（%）
+            years: 返済期間（年）
+            
+        Returns:
+            月次返済額（万円）
+        """
+        if principal <= 0 or years <= 0:
+            return 0
+        
+        # 月利に変換
+        monthly_rate = (annual_rate / 100) / 12
+        n_months = int(years * 12)
+        
+        if monthly_rate == 0:
+            # 金利0%の場合
+            return principal / n_months
+        
+        # 元利均等返済の計算式
+        monthly_payment = principal * (
+            monthly_rate * (1 + monthly_rate) ** n_months
+        ) / (
+            (1 + monthly_rate) ** n_months - 1
+        )
+        
+        return monthly_payment
+    
+    @staticmethod
+    def calculate_remaining_balance(principal: float, annual_rate: float,
+                                   total_months: int, 
+                                   elapsed_months: int) -> float:
+        """
+        残存借入残高を計算
+        
+        Args:
+            principal: 当初借入額（万円）
+            annual_rate: 年利（%）
+            total_months: 総返済期間（月）
+            elapsed_months: 経過月数
+            
+        Returns:
+            残存借入残高（万円）
+        """
+        if elapsed_months >= total_months:
+            return 0
+        
+        monthly_rate = (annual_rate / 100) / 12
+        
+        if monthly_rate == 0:
+            return principal * (total_months - elapsed_months) / total_months
+        
+        # 残存借入残高の計算
+        remaining_months = total_months - elapsed_months
+        remaining_balance = principal * (
+            ((1 + monthly_rate) ** total_months - 
+             (1 + monthly_rate) ** elapsed_months)
+        ) / (
+            (1 + monthly_rate) ** total_months - 1
+        )
+        
+        return remaining_balance
+    
     def calculate_shortage_probability(self, params: Dict, 
                                       target_cash: float) -> float:
         """
@@ -152,15 +221,19 @@ class FundingCalculator:
         
         return results
     
-    def calculate_monthly_cf_surplus(self, params: Dict) -> float:
+    def calculate_monthly_cf_surplus(self, params: Dict) -> Dict:
         """
-        月次CF余剰を計算
+        月次CF余剰を計算（既存借入考慮）
         
         Args:
             params: 基本パラメータ
             
         Returns:
-            月次CF余剰（万円）
+            {
+                'gross_cf': 粗CF（万円）,
+                'existing_payment': 既存借入返済額（万円）,
+                'net_cf_surplus': 純CF余剰（万円）
+            }
         """
         monthly_sales = params['monthly_sales']
         cost_rate = params['cost_rate'] / 100
@@ -168,14 +241,25 @@ class FundingCalculator:
         
         # 平均的な営業CF
         gross_profit = monthly_sales * (1 - cost_rate)
-        operating_cf = gross_profit - fixed_cost
+        gross_cf = gross_profit - fixed_cost
         
-        # 既存借入返済額（パラメータにあれば）
-        existing_repayment = params.get('existing_debt_repayment', 0)
+        # 既存借入返済額の計算
+        existing_balance = params.get('existing_loan_balance', 0)
+        existing_rate = params.get('existing_loan_rate', 0)
+        existing_years = params.get('existing_loan_years', 0)
         
-        cf_surplus = operating_cf - existing_repayment
+        existing_payment = self.calculate_loan_payment(
+            existing_balance, existing_rate, existing_years
+        )
         
-        return cf_surplus
+        # 純CF余剰
+        net_cf_surplus = gross_cf - existing_payment
+        
+        return {
+            'gross_cf': gross_cf,
+            'existing_payment': existing_payment,
+            'net_cf_surplus': net_cf_surplus
+        }
     
     def calculate_shortest_repayment(self, funding_amount: float, 
                                     monthly_cf_surplus: float,
