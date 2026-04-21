@@ -346,18 +346,9 @@ st.info("""
 📋 **このツールの使い方**
 
 1️⃣ 財務数値を入力（8項目のみ）  
-2️⃣ シミュレーション実行ボタンをクリック  
+2️⃣ 入力完了後、一番下のシミュレーション実行ボタンをクリック  
 3️⃣ 長期運転資金 → ストレステスト → レポート出力
 """)
-
-# 実行ボタン
-st.markdown("---")
-run_simulation = st.button(
-    "🚀 シミュレーション実行（10,000回）",
-    type="primary",
-    use_container_width=True
-)
-st.markdown("---")
 
 # 基本情報入力
 st.markdown('<div class="section-header">📋 ステップ1: 基本情報の入力</div>', 
@@ -412,6 +403,15 @@ with col1:
     ap_days = st.number_input("支払サイト（日）", min_value=0, max_value=180, value=35, step=5)
 with col2:
     inventory_days = st.number_input("在庫回転期間（日）", min_value=0, max_value=180, value=30, step=5)
+
+# 実行ボタン（入力完了後）
+st.markdown("---")
+run_simulation = st.button(
+    "🚀 シミュレーション実行（10,000回）",
+    type="primary",
+    use_container_width=True
+)
+st.markdown("---")
 
 # シミュレーション実行
 if run_simulation:
