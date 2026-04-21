@@ -1,3 +1,4 @@
+# Updated: 2026-04-21 - Force rebuild
 streamlit==1.32.0
 pandas==2.2.0
 numpy==1.26.4
