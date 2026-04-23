@@ -156,7 +156,7 @@ def generate_word_report(params, funding_needs, shock_results, cf_info):
     cells[1].text = '金額'
     
     cells = table.rows[1].cells
-    cells[0].text = '必要運転資金（安全水準）'
+    cells[0].text = '必要運転資金（年間/安全水準）'
     cells[1].text = f'{recommended_funding:,.0f}万円'
     
     cells = table.rows[2].cells
@@ -252,11 +252,11 @@ def generate_excel_report(params, funding_needs, shock_results, cf_info):
     ws1.title = "必要資金額"
     
     # ヘッダー
-    ws1['A1'] = '目標水準別 必要資金額'
+    ws1['A1'] = '目標水準別 必要運転資金（年間）'
     ws1['A1'].font = Font(size=16, bold=True)
     
     # 列ヘッダー
-    headers = ['目標水準', '資金ショート確率', '必要現金残高', '必要資金額', '月次返済額（5年）']
+    headers = ['目標水準', '資金ショート確率', '必要現金残高', '必要運転資金（年間）', '月次返済額（5年返済）']
     for col, header in enumerate(headers, 1):
         cell = ws1.cell(row=3, column=col)
         cell.value = header
@@ -475,7 +475,7 @@ if run_simulation:
     }
     
     # Phase 3: 長期運転資金
-    st.markdown('<div class="section-header section-header-success">💰 Phase 3: 長期運転資金の必要額</div>', 
+    st.markdown('<div class="section-header section-header-success">💰 Phase 3: 必要運転資金（年間）の算出</div>', 
                 unsafe_allow_html=True)
     
     with st.spinner('必要資金額を算出中...'):
@@ -487,7 +487,7 @@ if run_simulation:
         gross_cf = cf_info['gross_cf']
         existing_payment = cf_info['existing_payment']
     
-    st.subheader("📊 目標水準別の必要資金額")
+    st.subheader("📊 目標水準別の必要運転資金（年間）")
     
     # 既存借入がある場合の情報表示
     if existing_loan_balance > 0:
@@ -530,11 +530,11 @@ if run_simulation:
         <div style="background-color: {color}; padding: 20px; border-radius: 10px; margin: 10px 0;">
             <h3>{icon} {level}水準（資金ショート確率 {result['target_probability']}%以下）</h3>
             <p style="font-size: 1.3rem; font-weight: bold;">
-                必要資金額: {result['funding_amount']:,.0f}万円
+                必要運転資金（年間）: {result['funding_amount']:,.0f}万円
             </p>
             <p style="font-size: 1.1rem;">
                 必要現金残高: {result['required_cash']:,.0f}万円<br>
-                月次返済額（5年）: {result['monthly_repayment_5y']:,.1f}万円
+                月次返済額（5年返済の場合）: {result['monthly_repayment_5y']:,.1f}万円
             </p>
         </div>
         """, unsafe_allow_html=True)
