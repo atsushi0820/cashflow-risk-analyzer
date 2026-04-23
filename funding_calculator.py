@@ -243,14 +243,8 @@ class FundingCalculator:
         gross_profit = monthly_sales * (1 - cost_rate)
         gross_cf = gross_profit - fixed_cost
         
-        # 既存借入返済額の計算
-        existing_balance = params.get('existing_loan_balance', 0)
-        existing_rate = params.get('existing_loan_rate', 0)
-        existing_years = params.get('existing_loan_years', 0)
-        
-        existing_payment = self.calculate_loan_payment(
-            existing_balance, existing_rate, existing_years
-        )
+        # 既存借入返済額（直接入力値を使用）
+        existing_payment = params.get('existing_monthly_payment', 0)
         
         # 純CF余剰
         net_cf_surplus = gross_cf - existing_payment
