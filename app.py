@@ -140,7 +140,7 @@ def calculate_breakeven_analysis(params):
 # Word出力関数
 # =============================================================================
 def generate_word_report(params, funding_needs, shock_results, cf_info):
-    """Word形式の資金繰り診断レポートを生成"""
+    """Word形式の経営診断レポートを生成"""
     
     if not DOCX_AVAILABLE:
         return None
@@ -152,8 +152,12 @@ def generate_word_report(params, funding_needs, shock_results, cf_info):
     doc = Document()
     
     # タイトル
-    title = doc.add_heading('資金繰りリスク診断レポート', 0)
+    title = doc.add_heading('経営診断レポート（簡易版）', 0)
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    # サブタイトル
+    subtitle = doc.add_paragraph('～ 中小企業向け経営判断資料 ～')
+    subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
     
     # 作成日
     doc.add_paragraph(f'作成日: {datetime.now().strftime("%Y年%m月%d日")}')
@@ -330,7 +334,7 @@ def generate_word_report(params, funding_needs, shock_results, cf_info):
 # Excel出力関数
 # =============================================================================
 def generate_excel_report(params, funding_needs, shock_results, cf_info):
-    """Excel形式の資金繰りリスク診断詳細データを生成"""
+    """Excel形式の経営診断詳細データを生成"""
     
     if not EXCEL_AVAILABLE:
         return None
@@ -522,15 +526,17 @@ def generate_excel_report(params, funding_needs, shock_results, cf_info):
 # =============================================================================
 
 # タイトル
-st.markdown("# 💰 資金繰りリスク可視化ツール")
-st.markdown("### 中小企業経営者向け - 5分で資金繰りリスクを診断")
+st.markdown("# 💼 簡易経営判断ツール（中小企業向け）")
+st.markdown("### 最小限の入力で、自社の経営状況を数値で把握")
 
 st.info("""
 📋 **このツールの使い方**
 
-1️⃣ 財務数値を入力（8項目のみ）  
-2️⃣ 入力完了後、一番下のシミュレーション実行ボタンをクリック  
-3️⃣ 長期運転資金 → ストレステスト → レポート出力
+1️⃣ 財務数値を入力（8項目のみ・5分で完了）  
+2️⃣ 入力完了後、一番下の「シミュレーション実行」ボタンをクリック  
+3️⃣ 損益分岐点 → 必要運転資金 → ストレステスト → レポート出力
+
+**注意**: このツールは銀行融資用の資料ではありません。経営者自身が現状を把握し、社内で改善策を検討するためのツールです。
 """)
 
 # 基本情報入力
@@ -828,7 +834,7 @@ if run_simulation:
     st.markdown('<div class="section-header section-header-info">📄 診断レポート出力</div>', 
                 unsafe_allow_html=True)
     
-    st.info("**資金繰りリスク診断レポートをダウンロードできます（経営判断・社内検討用）**")
+    st.info("**経営診断レポートをダウンロードできます（社内検討・改善策立案用）**")
     
     col1, col2 = st.columns(2)
     
@@ -840,7 +846,7 @@ if run_simulation:
                 st.download_button(
                     label="📝 診断レポート（Word）",
                     data=word_buffer,
-                    file_name=f"資金繰りリスク診断_{datetime.now().strftime('%Y%m%d')}.docx",
+                    file_name=f"経営診断レポート_{datetime.now().strftime('%Y%m%d')}.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     use_container_width=True
                 )
@@ -855,7 +861,7 @@ if run_simulation:
                 st.download_button(
                     label="📊 詳細データ（Excel）",
                     data=excel_buffer,
-                    file_name=f"資金繰りリスク診断_詳細_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                    file_name=f"経営診断レポート_詳細_{datetime.now().strftime('%Y%m%d')}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     use_container_width=True
                 )
