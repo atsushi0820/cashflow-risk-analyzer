@@ -100,6 +100,43 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =============================================================================
+# 損益分岐点分析関数
+# =============================================================================
+def calculate_breakeven_analysis(params):
+    """損益分岐点分析を実行"""
+    monthly_fixed_cost = params['monthly_fixed_cost']
+    cost_rate = params['cost_rate'] / 100
+    monthly_sales = params['monthly_sales']
+    
+    # 損益分岐点売上高
+    breakeven_sales = monthly_fixed_cost / (1 - cost_rate) if cost_rate < 1 else 0
+    
+    # 達成率
+    achievement_rate = (monthly_sales / breakeven_sales) * 100 if breakeven_sales > 0 else 0
+    
+    # 営業日別目標（20日、21日、22日）
+    daily_targets = {
+        20: breakeven_sales / 20,
+        21: breakeven_sales / 21,
+        22: breakeven_sales / 22
+    }
+    
+    # 粗利目標
+    gross_profit_target = breakeven_sales * (1 - cost_rate)
+    
+    # 差額（現在の売上 - 損益分岐点）
+    sales_gap = monthly_sales - breakeven_sales
+    
+    return {
+        'breakeven_sales': breakeven_sales,
+        'achievement_rate': achievement_rate,
+        'daily_targets': daily_targets,
+        'gross_profit_target': gross_profit_target,
+        'current_sales': monthly_sales,
+        'sales_gap': sales_gap
+    }
+
+# =============================================================================
 # Word出力関数
 # =============================================================================
 def generate_word_report(params, funding_needs, shock_results, cf_info):
@@ -142,8 +179,63 @@ def generate_word_report(params, funding_needs, shock_results, cf_info):
     
     doc.add_paragraph('')
     
-    # 2. リスク評価と必要資金額
-    doc.add_heading('2. リスク評価と必要資金額', 1)
+    # 2. 損益分岐点分析
+    doc.add_heading('2. 損益分岐点分析', 1)
+    
+    # 損益分岐点計算
+    breakeven_data = calculate_breakeven_analysis(params)
+    
+    table = doc.add_table(rows=5, cols=2)
+    table.style = 'Light Grid Accent 1'
+    
+    cells = table.rows[0].cells
+    cells[0].text = '項目'
+    cells[1].text = '金額'
+    
+    cells = table.rows[1].cells
+    cells[0].text = '月次損益分岐点売上高'
+    cells[1].text = f'{breakeven_data["breakeven_sales"]:,.0f}万円'
+    
+    cells = table.rows[2].cells
+    cells[0].text = '現在の平均売上'
+    cells[1].text = f'{breakeven_data["current_sales"]:,.0f}万円'
+    
+    cells = table.rows[3].cells
+    cells[0].text = '達成率'
+    cells[1].text = f'{breakeven_data["achievement_rate"]:.1f}%'
+    
+    cells = table.rows[4].cells
+    cells[0].text = '差額'
+    cells[1].text = f'{breakeven_data["sales_gap"]:+,.0f}万円'
+    
+    doc.add_paragraph('')
+    
+    # 営業日別目標
+    doc.add_heading('営業日別の売上目標', 2)
+    
+    table = doc.add_table(rows=4, cols=2)
+    table.style = 'Light Grid Accent 1'
+    
+    cells = table.rows[0].cells
+    cells[0].text = '営業日数'
+    cells[1].text = '1日あたり目標売上'
+    
+    cells = table.rows[1].cells
+    cells[0].text = '20営業日/月'
+    cells[1].text = f'{breakeven_data["daily_targets"][20]:,.1f}万円'
+    
+    cells = table.rows[2].cells
+    cells[0].text = '21営業日/月'
+    cells[1].text = f'{breakeven_data["daily_targets"][21]:,.1f}万円'
+    
+    cells = table.rows[3].cells
+    cells[0].text = '22営業日/月'
+    cells[1].text = f'{breakeven_data["daily_targets"][22]:,.1f}万円'
+    
+    doc.add_paragraph('')
+    
+    # 3. リスク評価と必要資金額
+    doc.add_heading('3. リスク評価と必要資金額', 1)
     
     recommended_funding = funding_needs['安全']['funding_amount']
     recommended_repayment = funding_needs['安全']['monthly_repayment_5y']
@@ -169,14 +261,14 @@ def generate_word_report(params, funding_needs, shock_results, cf_info):
     
     doc.add_paragraph('')
     
-    # 3. 改善効果（目標）
-    doc.add_heading('3. 改善効果（目標）', 1)
+    # 4. 改善効果（目標）
+    doc.add_heading('4. 改善効果（目標）', 1)
     doc.add_paragraph(f'• 資金ショート確率を{funding_needs["安全"]["target_probability"]}%以下に抑制（安全水準）')
     doc.add_paragraph('• 資金繰りの安定化による経営基盤の強化')
     doc.add_paragraph('')
     
-    # 4. キャッシュフロー分析
-    doc.add_heading('4. キャッシュフロー分析', 1)
+    # 5. キャッシュフロー分析
+    doc.add_heading('5. キャッシュフロー分析', 1)
     
     gross_profit = params['monthly_sales'] * (1 - params['cost_rate']/100)
     
@@ -215,8 +307,8 @@ def generate_word_report(params, funding_needs, shock_results, cf_info):
     
     doc.add_paragraph('')
     
-    # 5. ストレステスト結果（リスクシナリオ分析）
-    doc.add_heading('5. ストレステスト結果（リスクシナリオ分析）', 1)
+    # 6. ストレステスト結果（リスクシナリオ分析）
+    doc.add_heading('6. ストレステスト結果（リスクシナリオ分析）', 1)
     doc.add_paragraph('過去の経済危機レベルのショックが発生した場合の資金繰りリスク:')
     doc.add_paragraph('')
     
@@ -314,11 +406,80 @@ def generate_excel_report(params, funding_needs, shock_results, cf_info):
     ws2.column_dimensions['B'].width = 22
     ws2.column_dimensions['C'].width = 22
     
-    # シート3: 基本情報
-    ws3 = wb.create_sheet("基本情報")
+    # シート3: 損益分岐点分析
+    ws3 = wb.create_sheet("損益分岐点分析")
     
-    ws3['A1'] = '入力パラメータ'
+    ws3['A1'] = '損益分岐点分析'
     ws3['A1'].font = Font(size=16, bold=True)
+    
+    # 損益分岐点計算
+    breakeven_data = calculate_breakeven_analysis(params)
+    
+    # 基本データ
+    ws3['A3'] = '項目'
+    ws3['A3'].font = Font(bold=True)
+    ws3['A3'].fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+    ws3['A3'].font = Font(color='FFFFFF', bold=True)
+    
+    ws3['B3'] = '金額'
+    ws3['B3'].font = Font(bold=True)
+    ws3['B3'].fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+    ws3['B3'].font = Font(color='FFFFFF', bold=True)
+    
+    row = 4
+    ws3.cell(row, 1).value = '月次損益分岐点売上高'
+    ws3.cell(row, 2).value = breakeven_data['breakeven_sales']
+    ws3.cell(row, 2).number_format = '#,##0'
+    row += 1
+    
+    ws3.cell(row, 1).value = '現在の平均売上'
+    ws3.cell(row, 2).value = breakeven_data['current_sales']
+    ws3.cell(row, 2).number_format = '#,##0'
+    row += 1
+    
+    ws3.cell(row, 1).value = '達成率'
+    ws3.cell(row, 2).value = breakeven_data['achievement_rate'] / 100
+    ws3.cell(row, 2).number_format = '0.0%'
+    row += 1
+    
+    ws3.cell(row, 1).value = '差額'
+    ws3.cell(row, 2).value = breakeven_data['sales_gap']
+    ws3.cell(row, 2).number_format = '#,##0'
+    row += 1
+    
+    ws3.cell(row, 1).value = '粗利目標'
+    ws3.cell(row, 2).value = breakeven_data['gross_profit_target']
+    ws3.cell(row, 2).number_format = '#,##0'
+    
+    # 営業日別目標
+    ws3['A10'] = '営業日別の売上目標'
+    ws3['A10'].font = Font(size=14, bold=True)
+    
+    ws3['A12'] = '営業日数'
+    ws3['A12'].font = Font(bold=True)
+    ws3['A12'].fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+    ws3['A12'].font = Font(color='FFFFFF', bold=True)
+    
+    ws3['B12'] = '1日あたり目標売上'
+    ws3['B12'].font = Font(bold=True)
+    ws3['B12'].fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+    ws3['B12'].font = Font(color='FFFFFF', bold=True)
+    
+    row = 13
+    for days in [20, 21, 22]:
+        ws3.cell(row, 1).value = f'{days}営業日/月'
+        ws3.cell(row, 2).value = breakeven_data['daily_targets'][days]
+        ws3.cell(row, 2).number_format = '#,##0.0'
+        row += 1
+    
+    ws3.column_dimensions['A'].width = 25
+    ws3.column_dimensions['B'].width = 20
+    
+    # シート4: 基本情報
+    ws4 = wb.create_sheet("基本情報")
+    
+    ws4['A1'] = '入力パラメータ'
+    ws4['A1'].font = Font(size=16, bold=True)
     
     row = 3
     param_labels = {
@@ -333,21 +494,21 @@ def generate_excel_report(params, funding_needs, shock_results, cf_info):
     }
     
     for key, label in param_labels.items():
-        ws3.cell(row, 1).value = label
-        ws3.cell(row, 1).font = Font(bold=True)
+        ws4.cell(row, 1).value = label
+        ws4.cell(row, 1).font = Font(bold=True)
         
         value = params[key]
         if key in ['cost_rate', 'sales_volatility']:
-            ws3.cell(row, 2).value = f'{value}%'
+            ws4.cell(row, 2).value = f'{value}%'
         elif key in ['ar_days', 'ap_days', 'inventory_days']:
-            ws3.cell(row, 2).value = f'{value}日'
+            ws4.cell(row, 2).value = f'{value}日'
         else:
-            ws3.cell(row, 2).value = f'{value:,.0f}万円'
+            ws4.cell(row, 2).value = f'{value:,.0f}万円'
         
         row += 1
     
-    ws3.column_dimensions['A'].width = 20
-    ws3.column_dimensions['B'].width = 18
+    ws4.column_dimensions['A'].width = 20
+    ws4.column_dimensions['B'].width = 18
     
     # Excelファイルをバイナリデータとして保存
     buffer = BytesIO()
@@ -473,6 +634,101 @@ if run_simulation:
         'existing_loan_balance': existing_loan_balance,
         'existing_monthly_payment': existing_monthly_payment
     }
+    
+    # 損益分岐点分析
+    st.markdown('<div class="section-header section-header-info">📈 損益分岐点分析</div>', 
+                unsafe_allow_html=True)
+    
+    breakeven_data = calculate_breakeven_analysis(params)
+    
+    # メインカード
+    st.subheader("💡 月次損益分岐点売上高")
+    
+    # 達成状況の色分け
+    if breakeven_data['achievement_rate'] >= 120:
+        color = "#d4edda"
+        icon = "✅"
+        status = "良好"
+    elif breakeven_data['achievement_rate'] >= 100:
+        color = "#fff3cd"
+        icon = "⚠️"
+        status = "注意"
+    else:
+        color = "#f8d7da"
+        icon = "🔴"
+        status = "要改善"
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown(f"""
+        <div style="background-color: {color}; padding: 20px; border-radius: 10px; margin: 10px 0;">
+            <h3>{icon} 損益分岐点売上高</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">
+                {breakeven_data['breakeven_sales']:,.0f}万円/月
+            </p>
+            <p style="font-size: 1.1rem;">
+                粗利目標: {breakeven_data['gross_profit_target']:,.0f}万円
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div style="background-color: {color}; padding: 20px; border-radius: 10px; margin: 10px 0;">
+            <h3>{icon} 達成状況</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">
+                {breakeven_data['achievement_rate']:.1f}% （{status}）
+            </p>
+            <p style="font-size: 1.1rem;">
+                現在売上: {breakeven_data['current_sales']:,.0f}万円<br>
+                差額: {breakeven_data['sales_gap']:+,.0f}万円
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # 営業日別目標
+    st.subheader("📅 営業日別の売上目標")
+    
+    st.info("""
+    **損益分岐点を達成するための1日あたりの売上目標**
+    
+    営業日数によって目標が変わります。自社の月平均営業日数に合わせてご確認ください。
+    """)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown(f"""
+        <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+            <h4>20営業日/月</h4>
+            <p style="font-size: 1.3rem; font-weight: bold; color: #1976d2;">
+                {breakeven_data['daily_targets'][20]:,.1f}万円/日
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
+            <h4>21営業日/月</h4>
+            <p style="font-size: 1.3rem; font-weight: bold; color: #388e3c;">
+                {breakeven_data['daily_targets'][21]:,.1f}万円/日
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; text-align: center;">
+            <h4>22営業日/月</h4>
+            <p style="font-size: 1.3rem; font-weight: bold; color: #f57c00;">
+                {breakeven_data['daily_targets'][22]:,.1f}万円/日
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
     
     # Phase 3: 長期運転資金
     st.markdown('<div class="section-header section-header-success">💰 Phase 3: 必要運転資金（年間）の算出</div>', 
